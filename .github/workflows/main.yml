@@ -48,7 +48,7 @@ jobs:
     needs: Deploy_DEV
     steps:
       - name: Wait for manual approval
-        uses: tzkhan/approval-action@v2
+        uses: Rankush-Vishwakarma/approval-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
     
