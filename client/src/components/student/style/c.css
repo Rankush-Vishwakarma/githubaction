@@ -1,0 +1,15 @@
+p{
+    font-weight: bold;
+}
+
+.m{
+    font-weight: bold;
+}
+.f{
+    display: flex;
+}
+
+.b{
+    border: 2px solid rgb(17, 17, 17);
+        padding: 10px;
+}
