@@ -1,51 +1,43 @@
-name: Node.JS CI/CD
+name: CI/CD Workflow
 
 on:
   push:
-    branches: [main]
-
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - prod
 
 jobs:
-
-  test:
-    name: Test
+  build-and-test:
     runs-on: ubuntu-latest
-
-    strategy: 
+    strategy:
       matrix:
-        node-version: [16.x]
-
+        node-version: [14.x]
+        
     steps:
-      - name: Checkout 
-        uses: actions/checkout@v3 # was "v2" before 
-        with: 
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Use Node.JS ${{ matrix.node-version }}
-        uses: actions/setup-node@v3 # was "v2" before
-        with: 
-          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install
 
-      - name: NPM install, build and test
-        run: |
-          npm install
-          npm run 
-          npm test
-        env: 
-          DBHOST: ${{ secrets.DBHOST }}
-          TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
-          JWT_EXPIRES_IN: ${{ secrets.JWT_EXPIRES_IN }}
+      - name: Run tests
+        run: npm test
 
-
-  # Heavily modified deploy job to fit render.com
-  deploy:
-    name: Deploy
-    needs: [test] # Our tests must pass in order to run the deploy job
+  deploy-to-dev:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Dev
+        run: echo "Deploying to dev environment..."
 
-    steps: 
-      - name: Deploy to production
-        uses: Rankush-Vishwakarma/render-deploy-action@v0.0.8
-        with:
-          service-id: ${{ secrets.SERVICE_ID }} # Can be found as part of the Deploy Hook
-          api-key: ${{ secrets.RENDER_API_KEY }} # Create your API key in Render Dashboard > Account Settings
+  deploy-to-prod:
+    needs: build-and-test
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Prod
+        run: echo "Deploying to prod environment..."
+        
